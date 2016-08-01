@@ -207,4 +207,15 @@ prediction_ARIMA_diff = pd.Series(result_ARIMA.fittedvalues, copy=True)
 # print prediction_ARIMA_diff.head()
 
 prediction_ARIMA_diff_cumsum = prediction_ARIMA_diff.cumsum()
-print prediction_ARIMA_diff_cumsum.head()
+#print prediction_ARIMA_diff_cumsum.head()
+
+#
+prediction_ARIMA_log = pd.Series(ts_log.ix[0], index= ts_log.index)
+prediction_ARIMA_log = prediction_ARIMA_log.add(prediction_ARIMA_diff_cumsum, fill_value=0)
+# print prediction_ARIMA_log.head()
+
+prediction_ARIMA = np.exp(prediction_ARIMA_log)
+plt.plot(ts)
+plt.plot(prediction_ARIMA)
+plt.title('RMSE: %.4f' % np.sqrt(sum((prediction_ARIMA-ts))**2/len(ts)))
+plt.show()
