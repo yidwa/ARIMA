@@ -7,14 +7,14 @@ from matplotlib.pylab import rcParams
 from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.stattools import acf, pacf
 from statsmodels.tsa.arima_model import ARIMA
-
+import Test
 
 rcParams['figure.figsize'] = 15, 6
 
 
 # data = pd.read_csv('AirPassengers.csv')
 #
-# print data.head()
+# print data.head()c
 #
 # print '\n Data Types:'
 #
@@ -46,35 +46,34 @@ ts = data['#Passengers']
 
 
 # test the stationary of time series data
-def test_stationary(timeseries):
-
-    # Determin rolling statics
-    rolmean = timeseries.rolling(window=12, center=False).mean()
-    rolstd = timeseries.rolling(window=12, center=False).std()
-    #
-    # Plot rolling statics
-    orig = plt.plot(timeseries, color='blue', label ='Original')
-    mean = plt.plot(rolmean, color='red', label = 'Rolling Mean')
-    std = plt.plot(rolstd, color='black', label = 'Rolling Std')
-    plt.legend(loc='best')
-    plt.title('Rolling mean & Standard Deviation')
-
-    #Perform Dicker-Fuller test
-
-    print "Result of Dicker-Fuller test:"
-    dftest = adfuller(timeseries, autolag='AIC')
-    dfoutput = pd.Series(dftest[0:4], index=['Test Statistic', 'p-value', '#Lags Used', 'Number of Observations Used'])
-    for key, value in dftest[4].items():
-        dfoutput['Critical Value (%s) ' %key] = value
-
-    print dfoutput
-    plt.show()
-
-# test_stationary(ts)
+# def test_stationary(timeseries):
+#
+#     # Determin rolling statics
+#     rolmean = timeseries.rolling(window=12, center=False).mean()
+#     rolstd = timeseries.rolling(window=12, center=False).std()
+#     #
+#     # Plot rolling statics
+#     orig = plt.plot(timeseries, color='blue', label ='Original')
+#     mean = plt.plot(rolmean, color='red', label = 'Rolling Mean')
+#     std = plt.plot(rolstd, color='black', label = 'Rolling Std')
+#     plt.legend(loc='best')
+#     plt.title('Rolling mean & Standard Deviation')
+#
+#     #Perform Dicker-Fuller test
+#
+#     print "Result of Dicker-Fuller test:"
+#     dftest = adfuller(timeseries, autolag='AIC')
+#     dfoutput = pd.Series(dftest[0:4], index=['Test Statistic', 'p-value', '#Lags Used', 'Number of Observations Used'])
+#     for key, value in dftest[4].items():
+#         dfoutput['Critical Value (%s) ' %key] = value
+#
+#     print dfoutput
+#     plt.show()
+Test.test_stationary(ts)
 
 
 # apply transformation which penalize higher values more than smaller values
-ts_log = np.log(ts)
+# ts_log = np.log(ts)
 # plt.plot(ts_log)
 # plt.show()
 
@@ -111,7 +110,7 @@ ts_log = np.log(ts)
 
 
 # ???? Differencing
-ts_log_diff = ts_log - ts_log.shift()
+# ts_log_diff = ts_log - ts_log.shift()
 # # plt.plot(ts_log_diff)
 # # plt.show()
 #
@@ -196,26 +195,26 @@ ts_log_diff = ts_log - ts_log.shift()
 # plt.show()
 
 #Combines Model
-model = ARIMA(ts_log, order=(2,1,2))
-result_ARIMA = model.fit(disp=-1)
+# model = ARIMA(ts_log, order=(2,1,2))
+# result_ARIMA = model.fit(disp=-1)
 # plt.plot(ts_log_diff)
 # plt.plot(result_ARIMA.fittedvalues, color='red')
 # plt.title('RSS: %.4f'% sum((result_ARIMA.fittedvalues-ts_log_diff)**2))
 # plt.show()
 
-prediction_ARIMA_diff = pd.Series(result_ARIMA.fittedvalues, copy=True)
+# prediction_ARIMA_diff = pd.Series(result_ARIMA.fittedvalues, copy=True)
 # print prediction_ARIMA_diff.head()
 
-prediction_ARIMA_diff_cumsum = prediction_ARIMA_diff.cumsum()
+# prediction_ARIMA_diff_cumsum = prediction_ARIMA_diff.cumsum()
 #print prediction_ARIMA_diff_cumsum.head()
 
 #
-prediction_ARIMA_log = pd.Series(ts_log.ix[0], index= ts_log.index)
-prediction_ARIMA_log = prediction_ARIMA_log.add(prediction_ARIMA_diff_cumsum, fill_value=0)
+# prediction_ARIMA_log = pd.Series(ts_log.ix[0], index= ts_log.index)
+# prediction_ARIMA_log = prediction_ARIMA_log.add(prediction_ARIMA_diff_cumsum, fill_value=0)
 # print prediction_ARIMA_log.head()
 
-prediction_ARIMA = np.exp(prediction_ARIMA_log)
-plt.plot(ts)
-plt.plot(prediction_ARIMA)
-plt.title('RMSE: %.4f' % np.sqrt(sum((prediction_ARIMA-ts))**2/len(ts)))
-plt.show()
+# prediction_ARIMA = np.exp(prediction_ARIMA_log)
+# plt.plot(ts)
+# plt.plot(prediction_ARIMA)
+# plt.title('RMSE: %.4f' % np.sqrt(sum((prediction_ARIMA-ts))**2/len(ts)))
+# plt.show()
