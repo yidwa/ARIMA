@@ -5,75 +5,39 @@ import matplotlib.dates as dates
 import numpy as np
 from dateutil.relativedelta import relativedelta
 from statsmodels.tsa.seasonal import seasonal_decompose
+from matplotlib.pylab import rcParams
 from statsmodels.tsa.stattools import adfuller
 import Test
 import statsmodels.api as sm
+from statsmodels.tsa.stattools import acf, pacf
+from statsmodels.tsa.arima_model import ARIMA
 
-dateparse = lambda dates: pd.datetime.strptime(dates, '%Y-%m')
+rcParams['figure.figsize'] = 15, 8
 
-data = pd.read_csv('Portland.csv' , index_col='Month', date_parser=dateparse)
+dateparse = lambda dates: pd.datetime.strptime(dates, '%d/%m/%Y %H:%M')
 
+data = pd.read_csv('grid_training.csv', parse_dates=[0], index_col='Time', date_parser=dateparse)
+
+# print data.index
+
+# remove three data record with 3000/2000/1700 count
 
 # print data.head()
-# plt.plot(data.index.to_pydatetime(), data['Portland'])
-
-
-ts = data['Portland']
-# Test.test_stationary(ts)
-
-
-# apply transformation which penalize higher values more than smaller values
-data_log = np.log(ts)
-# plt.plot(data_log.index.to_pydatetime(), data_log)
+# plt.plot(data.index.to_pydatetime(), data['Count'])
 # plt.show()
 
+# ts = data['#Count']
+# print ts.head(10)
+# # Test.test_stationary(ts)
+data_log = np.log(data)
+# print data_log.index
 
-# remove noise
-# moving average
-# take average of k consecutive values depending on the frequency of time series
-
-# moving_avg = ts_log.rolling(window=12, center=False).mean()
-# plt.plot(ts_log)
-# plt.plot(moving_avg, color='red')
-# plt.show()
-
-# moving average only define rolling mean for the last month of each year
-# ts_log_moving_avg_diff = ts_log - moving_avg
-# print ts_log_moving_avg_diff.head(12)
-
-
-# drop NAN values
-# ts_log_moving_avg_diff.dropna(inplace=True)
-# test_stationary(ts_log_moving_avg_diff)
-
-
-# exponentially weighted moving average where weights are assigned to all the previous values with a decay factor
-#  no missing values as all values from starting are given weights
-
-# expwighted_avg = ts_log.ewm(halflife=12, ignore_na=False, min_periods=0, adjust=True).mean()
-# plt.plot(ts_log)
-# plt.plot(expwighted_avg, color='red')
-# plt.show()
-
-# ts_log_ewm_diff = ts_log - expwighted_avg
-# test_stationary(ts_log_ewm_diff)
-
-# Differencing - take the difference with a particular time lag
-# ts_log_diff = ts_log - ts_log.shift()
-# plt.plot(ts_log_diff)
-# plt.show()
-#
-# ts_log_diff.dropna(inplace=True)
-# test_stationary(ts_log_diff)
-
-# Decomposition , remove both trend and seasonal
-
-decomposition = seasonal_decompose(data_log)
-#
+decomposition = seasonal_decompose(data_log,freq = 12)
 trend = decomposition.trend
 seasonal = decomposition.seasonal
 residual = decomposition.resid
-#
+
+
 
 def showing_decomposition():
     plt.subplot(411)
@@ -96,35 +60,78 @@ def showing_decomposition():
     plt.grid(True)
     plt.show()
 
-
-
 # showing_decomposition()
-
 
 # model the residuals
 data_log_decompose = residual
 data_log_decompose.dropna(inplace=True)
-
+#
 data_first_diff = data_log_decompose - data_log_decompose.shift(1)
 data_first_diff.dropna(inplace=True)
-
+#
 data_season_diff = data_first_diff - data_first_diff.shift(12)
 data_season_diff.dropna(inplace=True)
+#
+# Test.test_stationary(data_log_decompose)
 
-# Test.test_stationary(data_season_diff)
 
-
-# ARIMA model (p,d,q)
+# ARIMA model (p,d,q)c
 # p - number of AR terms
 # q - number of moving average terms
 # d - number of differences
-
+#
 # fig = plt.figure(figsize=(12,8))
 # ax1 = fig.add_subplot(211)
-# fig = sm.graphics.tsa.plot_acf(data_season_diff.iloc[13:], lags=40, ax=ax1)
+# fig = sm.graphics.tsa.plot_acf(data_season_diff.iloc[1:], lags=40, ax=ax1)
 # ax2 = fig.add_subplot(212)
-# fig = sm.graphics.tsa.plot_pacf(data_season_diff.iloc[13:], lags=40, ax=ax2)
+# fig = sm.graphics.tsa.plot_pacf(data_season_diff.iloc[1:], lags=40, ax=ax2)
 
 # plt.show()
+# acf & pcf
+lag_acf = acf(data_log_decompose, nlags=20)
+lag_pacf = pacf(data_log_decompose, nlags=20, method='ols')
 
+data_log_diff = data_log-data_log.shift()
+#plot acf
+# plt.subplot(121)
+# plt.plot(lag_acf)
+# plt.axhline(y=0, color='gray')
+# plt.axhline(y=-1.96/np.sqrt(len(data_log_diff)), color='gray')
+# plt.axhline(y=1.96/np.sqrt(len(data_log_diff)),  color='gray')
+# plt.title('Autocorrelation Function')
+#
+# #plot pacf
+# plt.subplot(122)
+# plt.plot(lag_pacf)
+# plt.axhline(y=0, color='gray')
+# plt.axhline(y=-1.96/np.sqrt(len(data_log_diff)), color='gray')
+# plt.axhline(y=1.96/np.sqrt(len(data_log_diff)),  color='gray')
+# plt.title('Partial Autocorrelation Function')
+# plt.tight_layout()
+#
+# plt.show()
 
+# Combines Model
+model = ARIMA(data_log, order=(2,1,2))
+result_ARIMA = model.fit(disp=-1)
+plt.plot(data_log_diff)
+plt.plot(result_ARIMA.fittedvalues, color='red')
+# # plt.title('RSS: %.4f'% sum((result_ARIMA.fittedvalues-data_log)**2))
+plt.show()
+
+# prediction_ARIMA_diff = pd.Series(result_ARIMA.fittedvalues, copy=True)
+# print prediction_ARIMA_diff.head()
+#
+# prediction_ARIMA_diff_cumsum = prediction_ARIMA_diff.cumsum()
+# print prediction_ARIMA_diff_cumsum.head()
+#
+#
+# prediction_ARIMA_log = pd.Series(data_log.ix[0], index= data_log.index)
+# prediction_ARIcMA_log = prediction_ARIMA_log.add(prediction_ARIMA_diff_cumsum, fill_value=0)
+# # print prediction_ARIMA_log.head()
+#
+# prediction_ARIMA = np.exp(prediction_ARIMA_log)
+# plt.plot(data.index.to_pydatetime(), data['Count'])
+# plt.plot(prediction_ARIMA.index.to_pydatetime(), prediction_ARIMA, color='red')
+# plt.title('RMSE: %.4f'% np.sqrt(sum((prediction_ARIMA-data['Count']))**2/len(data)))
+# plt.show()

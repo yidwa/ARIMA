@@ -19,7 +19,7 @@ def test_stationary(timeseries):
     #Perform Dicker-Fuller test
 
     print "Result of Dicker-Fuller test:"
-    dftest = adfuller(timeseries, autolag='AIC')
+    dftest = adfuller(timeseries.unstack(), autolag='AIC')
     dfoutput = pd.Series(dftest[0:4], index=['Test Statistic', 'p-value', '#Lags Used', 'Number of Observations Used'])
     for key, value in dftest[4].items():
         dfoutput['Critical Value (%s) ' %key] = value

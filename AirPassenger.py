@@ -8,7 +8,6 @@ from statsmodels.tsa.seasonal import seasonal_decompose
 from statsmodels.tsa.stattools import acf, pacf
 from statsmodels.tsa.arima_model import ARIMA
 import Test
-
 rcParams['figure.figsize'] = 15, 6
 
 
@@ -194,27 +193,3 @@ Test.test_stationary(ts)
 # plt.title('RSS: %.4f'% sum((result_MA.fittedvalues-ts_log_diff)**2))
 # plt.show()
 
-#Combines Model
-# model = ARIMA(ts_log, order=(2,1,2))
-# result_ARIMA = model.fit(disp=-1)
-# plt.plot(ts_log_diff)
-# plt.plot(result_ARIMA.fittedvalues, color='red')
-# plt.title('RSS: %.4f'% sum((result_ARIMA.fittedvalues-ts_log_diff)**2))
-# plt.show()
-
-# prediction_ARIMA_diff = pd.Series(result_ARIMA.fittedvalues, copy=True)
-# print prediction_ARIMA_diff.head()
-
-# prediction_ARIMA_diff_cumsum = prediction_ARIMA_diff.cumsum()
-#print prediction_ARIMA_diff_cumsum.head()
-
-#
-# prediction_ARIMA_log = pd.Series(ts_log.ix[0], index= ts_log.index)
-# prediction_ARIMA_log = prediction_ARIMA_log.add(prediction_ARIMA_diff_cumsum, fill_value=0)
-# print prediction_ARIMA_log.head()
-
-# prediction_ARIMA = np.exp(prediction_ARIMA_log)
-# plt.plot(ts)
-# plt.plot(prediction_ARIMA)
-# plt.title('RMSE: %.4f' % np.sqrt(sum((prediction_ARIMA-ts))**2/len(ts)))
-# plt.show()
